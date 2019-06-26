@@ -18,6 +18,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import io.qytc.gstsdk.R;
+
 import com.tencent.rtmp.TXLog;
 import com.tencent.rtmp.ui.TXCloudVideoView;
 import com.tencent.trtc.TRTCCloudDef;
@@ -28,19 +29,19 @@ import java.util.HashMap;
 
 /**
  * Module:   VideoViewLayout
- *
+ * <p>
  * Function: 用于计算每个视频画面的位置排布和大小尺寸
- *
  */
 public class VideoViewLayout extends RelativeLayout {
-    private final static String TAG     = VideoViewLayout.class.getSimpleName();
-    public static final int MODE_FLOAT  = 1;  // 前后堆叠模式
-    public static final int MODE_GRID   = 2;  // 九宫格模式
-    public static final int MAX_USER    = 7;
+    private final static String TAG = VideoViewLayout.class.getSimpleName();
+    public static final int MODE_FLOAT = 1;  // 前后堆叠模式
+    public static final int MODE_GRID = 2;  // 九宫格模式
+    public static final int MAX_USER = 7;
     private Context mContext;
     private ArrayList<TXCloudVideoView> mVideoViewList;
     private ArrayList<RelativeLayout.LayoutParams> mFloatParamList;
     private ArrayList<LayoutParams> mGrid4ParamList;
+    private ArrayList<LayoutParams> mGrid7ParamList;
     private ArrayList<LayoutParams> mGrid9ParamList;
     private RelativeLayout mLayout;
     private int mCount = 0;
@@ -48,8 +49,6 @@ public class VideoViewLayout extends RelativeLayout {
 
     private String mSelfUserId;
     private WeakReference<ITRTCVideoViewLayoutListener> mListener = new WeakReference<>(null);
-
-    HashMap<Integer, Integer> mapNetworkQuality = null;
 
     public interface ITRTCVideoViewLayoutListener {
         void onEnableRemoteVideo(String userId, boolean enable);
@@ -86,19 +85,11 @@ public class VideoViewLayout extends RelativeLayout {
     private void initView(Context context) {
         mContext = context;
         LayoutInflater.from(context).inflate(R.layout.room_show_view, this);
-        mLayout = (RelativeLayout) findViewById(R.id.ll_mainview);
+        mLayout = findViewById(R.id.ll_mainview);
         initTXCloudVideoView();
 
-        mapNetworkQuality = new HashMap<>();
-        mapNetworkQuality.put(Integer.valueOf(TRTCCloudDef.TRTC_QUALITY_Down), Integer.valueOf(R.mipmap.signal1));
-        mapNetworkQuality.put(Integer.valueOf(TRTCCloudDef.TRTC_QUALITY_Vbad), Integer.valueOf(R.mipmap.signal2));
-        mapNetworkQuality.put(Integer.valueOf(TRTCCloudDef.TRTC_QUALITY_Bad), Integer.valueOf(R.mipmap.signal3));
-        mapNetworkQuality.put(Integer.valueOf(TRTCCloudDef.TRTC_QUALITY_Poor), Integer.valueOf(R.mipmap.signal4));
-        mapNetworkQuality.put(Integer.valueOf(TRTCCloudDef.TRTC_QUALITY_Good), Integer.valueOf(R.mipmap.signal5));
-        mapNetworkQuality.put(Integer.valueOf(TRTCCloudDef.TRTC_QUALITY_Excellent), Integer.valueOf(R.mipmap.signal6));
-
         // 默认为堆叠模式
-        mMode = MODE_FLOAT;
+        mMode = MODE_GRID;
     }
 
     @Override
@@ -125,8 +116,9 @@ public class VideoViewLayout extends RelativeLayout {
     }
 
     public void initGridLayoutParams() {
-        mGrid4ParamList = new ArrayList<RelativeLayout.LayoutParams>();
-        mGrid9ParamList = new ArrayList<RelativeLayout.LayoutParams>();
+        mGrid4ParamList = new ArrayList<>();
+        mGrid7ParamList = new ArrayList<>();
+        mGrid9ParamList = new ArrayList<>();
         int statusH = getStatusBarHeight(mContext);
         TXLog.i(TAG, "statusH:" + statusH);
         int screenW = getScreenWidth(mContext);
@@ -135,7 +127,7 @@ public class VideoViewLayout extends RelativeLayout {
         int margin = dip2px(10);
 
         initGrid4Param(statusH, screenW, screenH, bottomMargin, margin);
-
+        initGrid7Param(screenW, margin);
         initGrid9Param(statusH, screenW, screenH, bottomMargin, margin);
     }
 
@@ -172,6 +164,71 @@ public class VideoViewLayout extends RelativeLayout {
         mGrid4ParamList.add(layoutParams2);
         mGrid4ParamList.add(layoutParams3);
     }
+
+    private void initGrid7Param(int screenW, int margin) {
+
+        int maxBoxHeight = dip2px(350);
+
+        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(dip2px(120), dip2px(160));
+        layoutParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+        layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+        layoutParams.rightMargin = dip2px(10);
+        layoutParams.bottomMargin = dip2px(100);
+
+        RelativeLayout.LayoutParams layoutParams0 = new RelativeLayout.LayoutParams(screenW, maxBoxHeight);
+        layoutParams0.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+        layoutParams0.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+
+        int minBoxWidth = dip2px(130);
+        int minBoxHeight = dip2px(130);
+        int minBoxMarginTop = maxBoxHeight + dip2px(margin);
+        RelativeLayout.LayoutParams layoutParams1 = new RelativeLayout.LayoutParams(minBoxWidth, minBoxHeight);
+        layoutParams1.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+        layoutParams1.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+        layoutParams1.topMargin = minBoxMarginTop;
+        layoutParams1.leftMargin = margin;
+
+        RelativeLayout.LayoutParams layoutParams2 = new RelativeLayout.LayoutParams(minBoxWidth, minBoxHeight);
+        layoutParams2.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+        layoutParams2.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+        layoutParams2.topMargin = minBoxMarginTop;
+        layoutParams2.leftMargin = minBoxWidth + margin * 2;
+
+        RelativeLayout.LayoutParams layoutParams3 = new RelativeLayout.LayoutParams(minBoxWidth, minBoxHeight);
+        layoutParams3.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+        layoutParams3.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+        layoutParams3.topMargin = minBoxMarginTop;
+        layoutParams3.leftMargin = minBoxWidth * 2 + margin * 3;
+
+        RelativeLayout.LayoutParams layoutParams4 = new RelativeLayout.LayoutParams(minBoxWidth, minBoxHeight);
+        layoutParams4.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+        layoutParams4.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+        layoutParams4.topMargin = (layoutParams0.topMargin + minBoxMarginTop + minBoxHeight + dip2px(margin));
+        layoutParams4.leftMargin = margin;
+
+        RelativeLayout.LayoutParams layoutParams5 = new RelativeLayout.LayoutParams(minBoxWidth, minBoxHeight);
+        layoutParams5.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+        layoutParams5.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+        layoutParams5.topMargin = (layoutParams0.topMargin + minBoxMarginTop + minBoxHeight + dip2px(margin));
+        layoutParams5.leftMargin = minBoxWidth + margin * 2;
+
+        RelativeLayout.LayoutParams layoutParams6 = new RelativeLayout.LayoutParams(minBoxWidth, minBoxHeight);
+        layoutParams6.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+        layoutParams6.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+        layoutParams6.topMargin = (layoutParams0.topMargin + minBoxMarginTop + minBoxHeight + dip2px(margin));
+        layoutParams6.leftMargin = minBoxWidth * 2 + margin * 3;
+
+        mGrid7ParamList.add(layoutParams);
+        mGrid7ParamList.add(layoutParams0);
+        mGrid7ParamList.add(layoutParams1);
+        mGrid7ParamList.add(layoutParams2);
+        mGrid7ParamList.add(layoutParams3);
+        mGrid7ParamList.add(layoutParams4);
+        mGrid7ParamList.add(layoutParams5);
+        mGrid7ParamList.add(layoutParams6);
+
+    }
+
 
     private void initGrid9Param(int statusH, int screenW, int screenH, int bottomMargin, int margin) {
         int grid9W = (screenW - margin * 2) / 3;
@@ -242,7 +299,7 @@ public class VideoViewLayout extends RelativeLayout {
      * 初始化堆叠布局的参数
      */
     public void initFloatLayoutParams() {
-        mFloatParamList = new ArrayList<RelativeLayout.LayoutParams>();
+        mFloatParamList = new ArrayList<>();
         // 底部最大的布局
         RelativeLayout.LayoutParams layoutParams0 = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         mFloatParamList.add(layoutParams0);
@@ -314,6 +371,7 @@ public class VideoViewLayout extends RelativeLayout {
         }
         return null;
     }
+
     /**
      * 初始化堆叠模式的布局
      */
@@ -361,12 +419,7 @@ public class VideoViewLayout extends RelativeLayout {
      * 初始化宫格模式的布局
      */
     public void initGridLayout() {
-        ArrayList<LayoutParams> paramList;
-        if (mCount <= 4) {
-            paramList = mGrid4ParamList;
-        } else {
-            paramList = mGrid9ParamList;
-        }
+        ArrayList<LayoutParams> paramList = mGrid7ParamList;
 
         int layoutIndex = 1;
         for (int i = 0; i < mVideoViewList.size(); i++) {
@@ -381,6 +434,16 @@ public class VideoViewLayout extends RelativeLayout {
                 } else if (layoutIndex < paramList.size()) {
                     cloudVideoView.setLayoutParams(paramList.get(layoutIndex++));
                 }
+            }
+            if (i != 0) {
+                cloudVideoView.setOnClickListener(view -> {
+                    ViewGroup.LayoutParams layoutParams = view.getLayoutParams();
+                    if (layoutParams.width == -1) {
+                        initGridLayout();
+                    } else {
+                        view.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT,LayoutParams.MATCH_PARENT));
+                    }
+                });
             }
         }
     }
@@ -566,7 +629,7 @@ public class VideoViewLayout extends RelativeLayout {
             view = LayoutInflater.from(mContext).inflate(R.layout.layout_toolbar, videoView);
             view.setVisibility(GONE);
 
-            final Button btnRemoteVideo = (Button)view.findViewById(R.id.btn_remote_video);
+            final Button btnRemoteVideo = (Button) view.findViewById(R.id.btn_remote_video);
             btnRemoteVideo.setTag(R.mipmap.remote_video_enable);
             btnRemoteVideo.setOnClickListener(new OnClickListener() {
                 @Override
@@ -576,7 +639,7 @@ public class VideoViewLayout extends RelativeLayout {
                         userId = userId.substring(0, userId.length() - 1);
                     }
                     if (userId != null && userId.length() > 0) {
-                        int currentTag = (int)btnRemoteVideo.getTag();
+                        int currentTag = (int) btnRemoteVideo.getTag();
                         boolean enable = currentTag != R.mipmap.remote_video_enable;
                         ITRTCVideoViewLayoutListener listener = mListener.get();
                         if (listener != null) {
@@ -588,7 +651,7 @@ public class VideoViewLayout extends RelativeLayout {
                 }
             });
 
-            final Button btnRemoteAudio = (Button)view.findViewById(R.id.btn_remote_audio);
+            final Button btnRemoteAudio = (Button) view.findViewById(R.id.btn_remote_audio);
             btnRemoteAudio.setTag(R.mipmap.remote_audio_enable);
             btnRemoteAudio.setOnClickListener(new OnClickListener() {
                 @Override
@@ -598,7 +661,7 @@ public class VideoViewLayout extends RelativeLayout {
                         userId = userId.substring(0, userId.length() - 1);
                     }
                     if (userId != null && userId.length() > 0) {
-                        int currentTag = (int)btnRemoteAudio.getTag();
+                        int currentTag = (int) btnRemoteAudio.getTag();
                         boolean enable = currentTag != R.mipmap.remote_audio_enable;
                         ITRTCVideoViewLayoutListener listener = mListener.get();
                         if (listener != null) {
@@ -610,7 +673,7 @@ public class VideoViewLayout extends RelativeLayout {
                 }
             });
 
-            final Button btnFillMode = (Button)view.findViewById(R.id.btn_fill_mode);
+            final Button btnFillMode = (Button) view.findViewById(R.id.btn_fill_mode);
             btnFillMode.setTag(R.mipmap.fill_scale);
             btnFillMode.setOnClickListener(new OnClickListener() {
                 @Override
@@ -620,7 +683,7 @@ public class VideoViewLayout extends RelativeLayout {
                         userId = userId.substring(0, userId.length() - 1);
                     }
                     if (userId != null && userId.length() > 0) {
-                        int currentTag = (int)btnFillMode.getTag();
+                        int currentTag = (int) btnFillMode.getTag();
                         boolean adjustMode = currentTag != R.mipmap.fill_scale;
                         ITRTCVideoViewLayoutListener listener = mListener.get();
                         if (listener != null) {
@@ -635,21 +698,21 @@ public class VideoViewLayout extends RelativeLayout {
     }
 
     private void clearVideoViewExtraData(TXCloudVideoView videoView) {
-        Button btnRemoteVideo = (Button)videoView.findViewById(R.id.btn_remote_video);
+        Button btnRemoteVideo = (Button) videoView.findViewById(R.id.btn_remote_video);
         btnRemoteVideo.setTag(R.mipmap.remote_video_enable);
         btnRemoteVideo.setBackgroundResource(R.mipmap.remote_video_enable);
 
-        Button btnRemoteAudio = (Button)videoView.findViewById(R.id.btn_remote_audio);
+        Button btnRemoteAudio = (Button) videoView.findViewById(R.id.btn_remote_audio);
         btnRemoteAudio.setTag(R.mipmap.remote_audio_enable);
         btnRemoteAudio.setBackgroundResource(R.mipmap.remote_audio_enable);
 
-        Button btnFillMode = (Button)videoView.findViewById(R.id.btn_fill_mode);
+        Button btnFillMode = (Button) videoView.findViewById(R.id.btn_fill_mode);
         btnFillMode.setTag(R.mipmap.fill_scale);
         btnFillMode.setBackgroundResource(R.mipmap.fill_scale);
     }
 
     public void freshToolbarLayout() {
-        for (TXCloudVideoView videoView: mVideoViewList) {
+        for (TXCloudVideoView videoView : mVideoViewList) {
             String userId = videoView.getUserId();
 
             View layoutToolbar = videoView.findViewById(R.id.layout_toolbar);
@@ -665,29 +728,25 @@ public class VideoViewLayout extends RelativeLayout {
                                     layoutToolbar.bringToFront();
                                     layoutToolbar.setVisibility(VISIBLE);
                                 }
-                            }
-                            else {
+                            } else {
                                 view.setVisibility(GONE);
                             }
                         }
                     }
-                    showToolbarButtons(videoView, false);
-                }
-                else {
+//                    showToolbarButtons(videoView, false);
+                } else {
                     if (videoView.getVisibility() == VISIBLE) {
                         if (layoutToolbar != null) {
                             layoutToolbar.bringToFront();
                             layoutToolbar.setVisibility(VISIBLE);
-                            showToolbarButtons(videoView, mMode == MODE_GRID);
+//                            showToolbarButtons(videoView, mMode == MODE_GRID);
                         }
-                    }
-                    else {
+                    } else {
                         layoutToolbar.setVisibility(GONE);
                         freshToolbarLayoutOnMemberLeave(videoView);
                     }
                 }
-            }
-            else {
+            } else {
                 layoutToolbar.setVisibility(GONE);
                 freshToolbarLayoutOnMemberLeave(videoView);
             }
@@ -695,14 +754,14 @@ public class VideoViewLayout extends RelativeLayout {
     }
 
     public void freshToolbarLayoutOnMemberEnter(String userID) {
-        for (TXCloudVideoView videoView: mVideoViewList) {
+        for (TXCloudVideoView videoView : mVideoViewList) {
             String tempUserID = videoView.getUserId();
             if (tempUserID != null && tempUserID.equalsIgnoreCase(userID)) {
                 View layoutToolbar = videoView.findViewById(R.id.layout_toolbar);
                 if (layoutToolbar != null) {
                     layoutToolbar.bringToFront();
                     layoutToolbar.setVisibility(VISIBLE);
-                    showToolbarButtons(videoView, mMode == MODE_GRID);
+//                    showToolbarButtons(videoView, mMode == MODE_GRID);
                 }
             }
         }
@@ -710,7 +769,7 @@ public class VideoViewLayout extends RelativeLayout {
 
     private void freshToolbarLayoutOnMemberLeave(TXCloudVideoView videoView) {
         showAudioVolumeProgressBar(videoView, false);
-        showToolbarButtons(videoView, false);
+//        showToolbarButtons(videoView, false);
         showNoVideoLayout(videoView, false);
         clearVideoViewExtraData(videoView);
     }
@@ -723,13 +782,13 @@ public class VideoViewLayout extends RelativeLayout {
     }
 
     public void hideAllAudioVolumeProgressBar() {
-        for (TXCloudVideoView videoView: mVideoViewList) {
+        for (TXCloudVideoView videoView : mVideoViewList) {
             showAudioVolumeProgressBar(videoView, false);
         }
     }
 
     public void showAllAudioVolumeProgressBar() {
-        for (TXCloudVideoView videoView: mVideoViewList) {
+        for (TXCloudVideoView videoView : mVideoViewList) {
             showAudioVolumeProgressBar(videoView, true);
         }
     }
@@ -737,7 +796,7 @@ public class VideoViewLayout extends RelativeLayout {
     private void showAudioVolumeProgressBar(TXCloudVideoView videoView, boolean bShow) {
         View layoutToolbar = videoView.findViewById(R.id.layout_toolbar);
         if (layoutToolbar != null) {
-            if(bShow == true) layoutToolbar.bringToFront();
+            if (bShow == true) layoutToolbar.bringToFront();
             layoutToolbar.setVisibility(bShow ? VISIBLE : GONE);
         }
         View view = videoView.findViewById(R.id.audio_volume);
@@ -755,16 +814,16 @@ public class VideoViewLayout extends RelativeLayout {
     }
 
     public void resetAudioVolume() {
-        for (TXCloudVideoView videoView: mVideoViewList) {
-            ProgressBar progressBar = (ProgressBar)videoView.findViewById(R.id.audio_volume);
+        for (TXCloudVideoView videoView : mVideoViewList) {
+            ProgressBar progressBar = (ProgressBar) videoView.findViewById(R.id.audio_volume);
             progressBar.setProgress(0);
         }
     }
 
     public void updateAudioVolume(String userID, int audioVolume) {
-        for (TXCloudVideoView videoView: mVideoViewList) {
+        for (TXCloudVideoView videoView : mVideoViewList) {
             if (videoView.getVisibility() == VISIBLE) {
-                ProgressBar progressBar = (ProgressBar)videoView.findViewById(R.id.audio_volume);
+                ProgressBar progressBar = (ProgressBar) videoView.findViewById(R.id.audio_volume);
                 String tempUserID = videoView.getUserId();
                 if (tempUserID != null && tempUserID.startsWith(userID)) {
                     progressBar.setProgress(audioVolume);
@@ -774,16 +833,16 @@ public class VideoViewLayout extends RelativeLayout {
     }
 
     public void updateNetworkQuality(String userID, int quality) {
-        for (TXCloudVideoView videoView: mVideoViewList) {
+        for (TXCloudVideoView videoView : mVideoViewList) {
             if (videoView.getVisibility() == VISIBLE) {
                 String tempUserID = videoView.getUserId();
                 if (tempUserID != null && tempUserID.startsWith(userID)) {
-                    ImageView imageView = (ImageView)videoView.findViewById(videoView.hashCode());
+                    ImageView imageView = videoView.findViewById(videoView.hashCode());
                     if (imageView == null) {
                         imageView = new ImageView(mContext);
                         imageView.setId(videoView.hashCode());
                         FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(60, 45, Gravity.TOP | Gravity.RIGHT);
-                        params.setMargins(0,30,8,0);
+                        params.setMargins(0, 30, 8, 0);
                         videoView.addView(imageView, params);
                     }
 
@@ -793,23 +852,17 @@ public class VideoViewLayout extends RelativeLayout {
                     if (quality > TRTCCloudDef.TRTC_QUALITY_Down) {
                         quality = TRTCCloudDef.TRTC_QUALITY_Down;
                     }
-
-                    if (imageView != null) {
-                        imageView.bringToFront();
-                        imageView.setVisibility(VISIBLE);
-                        imageView.setImageResource(mapNetworkQuality.get(Integer.valueOf(quality).intValue()));
-                    }
                 }
             }
         }
     }
 
     public void updateVideoStatus(String userID, boolean bHasVideo) {
-        for (TXCloudVideoView videoView: mVideoViewList) {
+        for (TXCloudVideoView videoView : mVideoViewList) {
             if (videoView.getVisibility() == VISIBLE) {
                 String tempUserID = videoView.getUserId();
                 if (tempUserID != null && tempUserID.startsWith(userID)) {
-                    TextView textView = (TextView)videoView.findViewById(R.id.textview_userid);
+                    TextView textView = (TextView) videoView.findViewById(R.id.textview_userid);
                     if (textView != null) {
                         if (mSelfUserId.equalsIgnoreCase(userID)) {
                             userID += "(您自己)";
@@ -824,8 +877,7 @@ public class VideoViewLayout extends RelativeLayout {
                         }
 
                         showNoVideoLayout(videoView, true);
-                    }
-                    else {
+                    } else {
                         showNoVideoLayout(videoView, false);
                     }
                 }
