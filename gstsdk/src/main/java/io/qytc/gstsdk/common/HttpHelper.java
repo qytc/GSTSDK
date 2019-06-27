@@ -1,4 +1,4 @@
-package io.qytc.gstsdk;
+package io.qytc.gstsdk.common;
 
 import android.text.TextUtils;
 import android.util.Log;
@@ -9,6 +9,7 @@ import org.json.JSONTokener;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
+import io.qytc.gstsdk.GetUserIDAndUserSig;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Interceptor;
@@ -29,8 +30,8 @@ public class HttpHelper {
     private final static int READ_TIMEOUT = 8;
     private final static int WRITE_TIMEOUT = 8;
 
-    private final static String JSON_ERRORCODE = "errorCode";
-    private final static String JSON_ERRORINFO = "errorInfo";
+    private final static String JSON_ERRORCODE = "code";
+    private final static String JSON_ERRORINFO = "msg";
     private final static String JSON_DATA = "data";
 
     private final static String JSON_APPID = "appid";
@@ -41,7 +42,7 @@ public class HttpHelper {
     private final static String JSON_PRIVMAP = "privMap";
     private final static String JSON_ACCTYPE = "accounttype";
 
-    private final static String SERVER_URL = "";
+    private final static String SERVER_URL = "http://122.112.229.143:8888/api/v1/account/getUserSig";
 
     private static final String TAG = HttpHelper.class.getSimpleName();
 
@@ -56,7 +57,7 @@ public class HttpHelper {
                 .build();
     }
 
-    public void post(int sdkAppId, int roomId, String userId, String password, final GetUserIDAndUserSig.IGetUserSigListener listener) {
+    public void post(String userId, final GetUserIDAndUserSig.IGetUserSigListener listener) {
         if (TextUtils.isEmpty(SERVER_URL)) {
             if (listener != null) {
                 listener.onComplete(null, "url is empty");
@@ -65,12 +66,7 @@ public class HttpHelper {
         }
         try {
             JSONObject jsonReq = new JSONObject();
-            jsonReq.put(JSON_APPID, sdkAppId);
-            jsonReq.put(JSON_ROOMNUM, roomId);
-            jsonReq.put(JSON_IDENTIFIER, userId);
-            jsonReq.put(JSON_PWD, password);
-            jsonReq.put(JSON_PRIVMAP, 255);
-            jsonReq.put(JSON_ACCTYPE, 14418);
+            jsonReq.put("userId", userId);
             RequestBody body = RequestBody.create(MediaType.parse("application/json"), jsonReq.toString());
             Request req = new Request.Builder()
                     .url(SERVER_URL)
@@ -104,8 +100,7 @@ public class HttpHelper {
                                     listener.onComplete(null, msgJson.getString(JSON_ERRORINFO));
                                 }
                             }else{
-                                JSONObject dataJson = msgJson.getJSONObject(JSON_DATA);
-                                String userSig = dataJson.getString(JSON_USERSIG);
+                                String userSig = msgJson.getString(JSON_DATA);
                                 if (listener != null) {
                                     listener.onComplete(userSig, msgJson.getString(JSON_ERRORINFO));
                                 }

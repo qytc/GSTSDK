@@ -1,9 +1,12 @@
 package io.qytc.gstsdk;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
 import android.text.TextUtils;
 
-import io.qytc.gstsdk.R;
+import io.qytc.gstsdk.common.HttpHelper;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -24,15 +27,15 @@ public class GetUserIDAndUserSig {
     private int mSdkAppId;
     private ArrayList<String> mUserIdArray;
     private ArrayList<String> mUserSigArray;
-
+    private Activity activity;
     private HttpHelper httpHelper;
 
-    public GetUserIDAndUserSig(Context context){
+    public GetUserIDAndUserSig(Activity activity){
         mSdkAppId = 0;
         mUserIdArray = new ArrayList<>();
         mUserSigArray = new ArrayList<>();
-
-        loadFromConfig(context);
+        this.activity=activity;
+        loadFromConfig(activity);
     }
 
     /**
@@ -40,6 +43,16 @@ public class GetUserIDAndUserSig {
      */
     public int getSdkAppIdFromConfig() {
         return mSdkAppId;
+    }
+
+    public int getSdkAppIdFromXML(){
+        try {
+            ActivityInfo info=activity.getPackageManager().getActivityInfo(activity.getComponentName(), PackageManager.GET_META_DATA);
+            return Integer.parseInt(info.metaData.getString("SdkAppId"));
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+            return -1;
+        }
     }
 
     /**
@@ -95,11 +108,11 @@ public class GetUserIDAndUserSig {
      *
      * 但本demo中的 getUserSigFromServer 函数仅作为示例代码，要跑通该逻辑，您需要参考：https://cloud.tencent.com/document/product/647/17275#GetFromServer
      */
-    public void getUserSigFromServer(int sdkAppId, int roomId, String userId, String password, IGetUserSigListener listener) {
+    public void getUserSigFromServer(String userId, IGetUserSigListener listener) {
         if (httpHelper == null) {
             httpHelper = new HttpHelper();
         }
-        httpHelper.post(sdkAppId, roomId, userId, password, listener);
+        httpHelper.post(userId, listener);
     }
 
 

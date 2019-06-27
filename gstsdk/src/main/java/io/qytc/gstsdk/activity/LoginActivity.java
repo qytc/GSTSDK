@@ -12,20 +12,17 @@ import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.text.TextUtils;
 import android.widget.EditText;
-import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.tencent.trtc.TRTCCloud;
-import com.tencent.trtc.TRTCCloudDef;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import io.qytc.gstsdk.GetUserIDAndUserSig;
 import io.qytc.gstsdk.R;
-import io.qytc.gstsdk.dialog.UserSelectDialog;
-
+import io.qytc.gstsdk.common.ThirdLoginConstant;
 
 /**
  * Module:   LoginActivity
@@ -44,109 +41,72 @@ public class LoginActivity extends Activity {
     private GetUserIDAndUserSig mUserInfoLoader;
     private String mUserId = "";
     private String mUserSig = "";
-
+    private String mAnchor = "yc0";
+    private  int roomId = -1;
+    private EditText etRoomId;
+    private EditText etUserId;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.login_activity);
 
-        final EditText etRoomId = findViewById(R.id.et_room_name);
-        final EditText etUserId = findViewById(R.id.et_user_name);
+        Intent intent = getIntent();
+        mUserId = intent.getStringExtra("userId");
+//        mAnchor = intent.getStringExtra("anchor");
 
+        etRoomId = findViewById(R.id.et_room_name);
+        etUserId = findViewById(R.id.et_user_name);
+
+        if(!TextUtils.isEmpty(mUserId)){
+            etUserId.setText(mUserId);
+        }
         loadUserInfo(etRoomId, etUserId);
 
         TextView tvEnterRoom = findViewById(R.id.tv_enter);
         tvEnterRoom.setOnClickListener(v -> startJoinRoom());
 
-        // 如果配置有config文件，则从config文件中选择userId
-        mUserInfoLoader = new GetUserIDAndUserSig(this);
-        final ArrayList<String> userIds = mUserInfoLoader.getUserIdFromConfig();
-        if (userIds != null && userIds.size() > 0) {
-            UserSelectDialog dialog = new UserSelectDialog(getContext(), mUserInfoLoader.getUserIdFromConfig());
-            dialog.setTitle("请选择登录的用户:");
-            dialog.setCanceledOnTouchOutside(false);
-            dialog.setOnItemClickListener(position -> {
-                final EditText etUserId1 = findViewById(R.id.et_user_name);
-                etUserId1.setText(userIds.get(position));
-                etUserId1.setEnabled(false);
-            });
-            dialog.show();
-        } else {
-            showAlertDialog();
-        }
+//        final ArrayList<String> userIds = mUserInfoLoader.getUserIdFromConfig();
+//        if (userIds != null && userIds.size() > 0) {
+//            UserSelectDialog dialog = new UserSelectDialog(getContext(), mUserInfoLoader.getUserIdFromConfig());
+//            dialog.setTitle("请选择登录的用户:");
+//            dialog.setCanceledOnTouchOutside(false);
+//            dialog.setOnItemClickListener(position -> {
+//                final EditText etUserId1 = findViewById(R.id.et_user_name);
+//                etUserId1.setText(userIds.get(position));
+//                etUserId1.setEnabled(false);
+//            });
+//            dialog.show();
+//        } else {
+//            showAlertDialog();
+//        }
 
         // 申请动态权限
         checkPermission();
     }
 
-    /**
-     * Function: 读取用户输入，并创建（或加入）音视频房间
-     * <p>
-     * 此段示例代码最主要的作用是组装 TRTC SDK 进房所需的 TRTCParams
-     * <p>
-     * TRTCParams.sdkAppId => 可以在腾讯云实时音视频控制台（https://console.cloud.tencent.com/rav）获取
-     * TRTCParams.userId   => 此处即用户输入的用户名，它是一个字符串
-     * TRTCParams.roomId   => 此处即用户输入的音视频房间号，比如 125
-     * TRTCParams.userSig  => 此处示例代码展示了两种获取 usersig 的方式，一种是从【控制台】获取，一种是从【服务器】获取
-     * <p>
-     * （1）控制台获取：可以获得几组已经生成好的 userid 和 usersig，他们会被放在一个 json 格式的配置文件中，仅适合调试使用
-     * （2）服务器获取：直接在服务器端用我们提供的源代码，根据 userid 实时计算 usersig，这种方式安全可靠，适合线上使用
-     * <p>
-     * 参考文档：https://cloud.tencent.com/document/product/647/17275
-     */
     private void onJoinRoom(final int roomId, final String userId) {
+        mUserInfoLoader = new GetUserIDAndUserSig(this);
+        Integer sdkAppId = 1400222844;//mUserInfoLoader.getSdkAppIdFromXML();
         final Intent intent = new Intent(getContext(), RoomActivity.class);
-        intent.putExtra("roomId", roomId);
-        intent.putExtra("userId", userId);
-        intent.putExtra("AppScene", TRTCCloudDef.TRTC_APP_SCENE_VIDEOCALL);
-        int sdkAppId = mUserInfoLoader.getSdkAppIdFromConfig();
-        if (sdkAppId > 0) {
-            //（1） 从控制台获取的 json 文件中，简单获取几组已经提前计算好的 userid 和 usersig
-            ArrayList<String> userIdList = mUserInfoLoader.getUserIdFromConfig();
-            ArrayList<String> userSigList = mUserInfoLoader.getUserSigFromConfig();
-            int position = userIdList.indexOf(userId);
-            String userSig = "";
-            if (userSigList != null && userSigList.size() > position) {
-                userSig = userSigList.get(position);
-            }
-            intent.putExtra("sdkAppId", sdkAppId);
-            intent.putExtra("userSig", userSig);
-            startActivity(intent);
-        } else {
-            //appId 可以在腾讯云实时音视频控制台（https://console.cloud.tencent.com/rav）获取
-            sdkAppId = -1;
-            if (!TextUtils.isEmpty(mUserId) && mUserId.equalsIgnoreCase(userId) && !TextUtils.isEmpty(mUserSig)) {
-                intent.putExtra("sdkAppId", sdkAppId);
-                intent.putExtra("userSig", mUserSig);
-                saveUserInfo(String.valueOf(roomId), userId, mUserSig);
+        intent.putExtra(ThirdLoginConstant.ROOMID, roomId);
+        intent.putExtra(ThirdLoginConstant.USERID, userId);
+        intent.putExtra(ThirdLoginConstant.ANCHOR, mAnchor);
+        intent.putExtra(ThirdLoginConstant.SDKAPPID, sdkAppId);
+
+        mUserInfoLoader.getUserSigFromServer(userId, (userSig, errMsg) -> {
+            if (!TextUtils.isEmpty(userSig)) {
+                intent.putExtra(ThirdLoginConstant.USERSIGN, userSig);
+                saveUserInfo(String.valueOf(roomId),userId,userSig);
                 startActivity(intent);
+                finish();
             } else {
-                //（2） 通过 http 协议向一台服务器获取 userid 对应的 usersig
-                final int finalSdkAppId = sdkAppId;
-                mUserInfoLoader.getUserSigFromServer(sdkAppId, roomId, userId, "12345678", (userSig, errMsg) -> {
-                    if (!TextUtils.isEmpty(userSig)) {
-                        intent.putExtra("sdkAppId", finalSdkAppId);
-                        intent.putExtra("userSig", userSig);
-                        saveUserInfo(String.valueOf(roomId), userId, userSig);
-                        startActivity(intent);
-                    } else {
-                        runOnUiThread(() -> Toast.makeText(getContext(), "从服务器获取userSig失败", Toast.LENGTH_SHORT).show());
-                    }
-                });
+                runOnUiThread(() -> Toast.makeText(getContext(), "获取签名失败", Toast.LENGTH_SHORT).show());
             }
-        }
-    }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-
+        });
     }
 
     private void startJoinRoom() {
-        final EditText etRoomId = findViewById(R.id.et_room_name);
-        final EditText etUserId = findViewById(R.id.et_user_name);
-        int roomId = 123;
         try {
             roomId = Integer.valueOf(etRoomId.getText().toString());
         } catch (Exception e) {
@@ -162,7 +122,6 @@ public class LoginActivity extends Activity {
         onJoinRoom(roomId, userId);
     }
 
-
     private Context getContext() {
         return this;
     }
@@ -175,7 +134,6 @@ public class LoginActivity extends Activity {
         alertDialog.setCanceledOnTouchOutside(true);
         alertDialog.show();
     }
-    //////////////////////////////////    动态权限申请   ////////////////////////////////////////
 
     private boolean checkPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -222,14 +180,13 @@ public class LoginActivity extends Activity {
     private void saveUserInfo(String roomId, String userId, String userSig) {
         try {
             mUserId = userId;
-            mUserSig = userSig;
+//            mUserSig = userSig;
             SharedPreferences shareInfo = this.getSharedPreferences("per_data", 0);
             SharedPreferences.Editor editor = shareInfo.edit();
-            editor.putString("userId", userId);
-            editor.putString("roomId", roomId);
-            editor.putString("userSig", userSig);
-            editor.putLong("userTime", System.currentTimeMillis());
-            editor.commit();
+            editor.putString(ThirdLoginConstant.USERID, userId);
+            editor.putString(ThirdLoginConstant.ROOMID, roomId);
+//            editor.putString("userSig", userSig);
+            editor.apply();
         } catch (Exception e) {
 
         }
@@ -239,21 +196,17 @@ public class LoginActivity extends Activity {
         try {
             TRTCCloud.getSDKVersion();
             SharedPreferences shareInfo = this.getSharedPreferences("per_data", 0);
-            mUserId = shareInfo.getString("userId", "");
-            String roomId = shareInfo.getString("roomId", "");
-            mUserSig = shareInfo.getString("userSig", "");
+            mUserId = shareInfo.getString(ThirdLoginConstant.USERID, "");
+            String roomId = shareInfo.getString(ThirdLoginConstant.ROOMID, "");
+//            mUserSig = shareInfo.getString("userSig", "");
             if (TextUtils.isEmpty(roomId)) {
                 etRoomId.setText("2999");
             } else {
                 etRoomId.setText(roomId);
             }
-            if (TextUtils.isEmpty(mUserId)) {
-                etUserId.setText(String.valueOf(System.currentTimeMillis() % 1000000));
-            } else {
-                etUserId.setText(mUserId);
-            }
+            etUserId.setText(mUserId);
         } catch (Exception e) {
-
+            e.printStackTrace();
         }
     }
 

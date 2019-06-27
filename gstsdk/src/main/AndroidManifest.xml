@@ -14,7 +14,7 @@
     <uses-feature android:name="android.hardware.camera" />
     <uses-feature android:name="android.hardware.camera.autofocus" />
 
-    <application android:name=".GSTSDKApplication">
+    <application android:name=".GSTSDKApplication" android:usesCleartextTraffic="true">
 
         <activity
             android:name=".activity.LoginActivity"
@@ -30,5 +30,7 @@
             android:launchMode="singleTask"
             android:windowSoftInputMode="adjustPan"
             android:screenOrientation="portrait" />
+        <meta-data android:name="SdkAppId" android:value="1400182283"/>
+
     </application>
 </manifest>
