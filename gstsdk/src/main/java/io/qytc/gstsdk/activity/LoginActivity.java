@@ -15,21 +15,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.qytc.gstsdk.GetUserIDAndUserSig;
-import io.qytc.gstsdk.common.ProgressDialogUtil;
 import io.qytc.gstsdk.common.ThirdLoginConstant;
 
-/**
- * Module:   LoginActivity
- * <p>
- * Function: 该界面可以让用户输入一个【房间号】和一个【用户名】
- * <p>
- * Notice:
- * <p>
- * （1）房间号为数字类型，用户名为字符串类型
- * <p>
- * （2）在真实的使用场景中，房间号大多不是用户手动输入的，而是系统分配的，
- * 比如视频会议中的会议号是会控系统提前预定好的，客服系统中的房间号也是根据客服员工的工号决定的。
- */
 public class LoginActivity extends Activity {
     private final static int REQ_PERMISSION_CODE = 0x1000;
     private GetUserIDAndUserSig mUserInfoLoader;

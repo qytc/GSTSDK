@@ -54,11 +54,6 @@ import java.util.zip.ZipInputStream;
 
 import io.qytc.gstsdk.R;
 
-/**
- * Module:   TRTCBeautySettingPannel
- *
- * 选择美颜，滤镜，动效等参数的界面，其中大眼，瘦脸，动效等功能在企业版SDK才生效
- */
 public class BeautySettingPanel extends FrameLayout implements SeekBar.OnSeekBarChangeListener {
     private final String TAG = "BeautySettingPannel";
     //    public static final int ITEM_TYPE_BEAUTY_STYLE = 0;

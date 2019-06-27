@@ -23,11 +23,6 @@ import com.tencent.trtc.TRTCCloudDef;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
-/**
- * Module:   SettingDialog
- * <p>
- * Function: 用于对视频通话的分辨率、帧率和流畅模式进行调整，并支持记录下这些设置项
- */
 public class SettingDialog extends Dialog {
     private final static String TAG = SettingDialog.class.getSimpleName();
     private Spinner spSolution, spFps;

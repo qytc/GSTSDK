@@ -12,12 +12,6 @@ import io.qytc.gstsdk.R;
 
 import java.util.ArrayList;
 
-/**
- * Module:   UserSelectDialog
- *
- * Function: 单选框用于选择userid
- *
- */
 public class UserSelectDialog extends Dialog implements RadioGroup.OnCheckedChangeListener {
     private RadioGroup rgMain;
     private ArrayList<RadioButton> rbList;

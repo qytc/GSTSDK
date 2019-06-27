@@ -1,24 +1,5 @@
 package io.qytc.gstsdk.customVideo;
 
-/*****************************************************************
- *
- *                 测试自定义采集功能 SendCustomVideoData
- *
- *  该示例代码通过从手机中的一个视频文件里读取视频画面，并通过 TRTCCloud 的 sendCustomVideoData 接口，
- *  将这些视频画面送给 SDK 进行编码和发送。
- *
- *  本示例代码中采用了 texture，也就是 openGL 纹理的方案，这是 android 系统下性能最好的一种视频处理方案。
- *
- *  1. start()：传入一个视频文件的文件路径，并启动一个 GLThread 线程，该线程启动后会有两种回调通知出来：
- *  2. onSurfaceTextureAvailable(): 承载视频画面的“画板（SurfaceTexture）”已经准备好了。
- *                                  由于从视频文件中读取出的纹理为 OES 外部纹理，不能直接传给 TRTC SDK，
- *                                  因此我们委托 GLThread 线程创建了一个 SurfaceTexture。
- *
- *  3. onTextureProcess(): 当 GLThread 线程关联的“画板”内容发生变更时，也就是有新的一帧视频渲染上来时，
- *                         GLThread 就会触发该回调。此时，我们就可以向 TRTC SDK 中 sendCustomVideoData() 了。
- *
- ******************************************************************/
-
 import android.content.Context;
 import android.graphics.SurfaceTexture;
 

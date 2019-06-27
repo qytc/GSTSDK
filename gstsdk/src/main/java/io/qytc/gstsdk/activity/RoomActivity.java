@@ -37,18 +37,6 @@ import io.qytc.gstsdk.dialog.MoreDialog;
 import io.qytc.gstsdk.dialog.SettingDialog;
 import io.qytc.gstsdk.view.VideoViewLayout;
 
-
-/**
- * Module:   RoomActivity
- * <p>
- * Function: 使用TRTC SDK完成 1v1 和 1vn 的视频通话功能
- * <p>
- * 1. 支持九宫格平铺和前后叠加两种不同的视频画面布局方式，该部分由 VideoViewLayout 来计算每个视频画面的位置排布和大小尺寸
- * <p>
- * 2. 支持对视频通话的分辨率、帧率和流畅模式进行调整，该部分由 SettingDialog 来实现
- * <p>
- * 3. 创建或者加入某一个通话房间，需要先指定 roomId 和 userId，这部分由 LoginActivity 来实现
- */
 public class RoomActivity extends Activity implements View.OnClickListener, SettingDialog.ISettingListener, MoreDialog.IMoreListener, VideoViewLayout.ITRTCVideoViewLayoutListener, BeautySettingPanel.IOnBeautyParamsChangeListener {
     private final static String TAG = RoomActivity.class.getSimpleName();
 

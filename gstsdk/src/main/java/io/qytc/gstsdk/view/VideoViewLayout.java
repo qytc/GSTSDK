@@ -27,11 +27,6 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-/**
- * Module:   VideoViewLayout
- * <p>
- * Function: 用于计算每个视频画面的位置排布和大小尺寸
- */
 public class VideoViewLayout extends RelativeLayout {
     private final static String TAG = VideoViewLayout.class.getSimpleName();
     public static final int MODE_FLOAT = 1;  // 前后堆叠模式

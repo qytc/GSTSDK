@@ -1,25 +1,5 @@
 package io.qytc.gstsdk.customVideo;
 
-/***********************************************************************************************************************
- *
- *                 测试自定义渲染功能 RenderVideoFrame
- *
- *  该示例代码通过 openGL 将 SDK 回调出来的视频帧渲染到系统的 TextureView 上。
- *
- *  本示例代码中采用了 texture，也就是 openGL 纹理的方案，这是 android 系统下性能最好的一种视频处理方案。
- *
- *  1. start()：传入一个系统TextureView（这个 View 需要加到 activity 的控件树上），并启动一个 GLThread 线程，用来将视频纹理渲染到 TextureView。
- *
- *  2. onSurfaceTextureAvailable(): TextureView 的 SurfaceTexture 已经准备好，可以用来生成 GLThread 的 EGLSurface ，
- *      这样在 openGL 线程做的渲染就可以在 TextureView 上显示出来
- *
- *  3. onRenderVideoFrame(): SDK 视频帧回调，在回调中可以拿到视频纹理ID和对应的 EGLContext。
- *      用这个 EGLContext 作为共享纹理来创建 GLThread ，这样 GLThread 就能访问SDK返回的纹理。
- *      触发 GLThread 线程的一个异步任务，用来渲染得到的视频纹理。
- *
- *  4. onTextureProcess(): GLThread 线程的回调，在回调中将视频纹理渲染到 TextureView。
- *************************************************************************************************************************/
-
 import android.content.Context;
 import android.graphics.SurfaceTexture;
 

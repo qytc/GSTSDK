@@ -18,11 +18,6 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 
 
-/**
- * Module:   GetUserIDAndUserSig
- *
- * Function: 用于获取组装 TRTCParam 所必须的 UserSig，腾讯云使用 UserSig 进行安全校验，保护您的 TRTC 流量不被盗用
- */
 public class GetUserIDAndUserSig {
     private int mSdkAppId;
     private ArrayList<String> mUserIdArray;

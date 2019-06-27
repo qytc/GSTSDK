@@ -11,20 +11,6 @@ import android.widget.RelativeLayout;
 
 import com.tencent.rtmp.ui.TXCloudVideoView;
 
-/**
- *  概述：
- *  此 VideoView 继承自 SDK 的 View 类{@link TXCloudVideoView}
- *  搭配 {@link VideoViewLayout} 可实现自由拖动
- *
- *  作用：
- *  可以实现自由拖动 View 的位置
- *
- *  使用要求：
- *  1. 此 View 的父容器目前仅兼容了 RelativeLayout ，在此容器下能够很容易实现拖动。
- *
- *  2. 此 View 的属性不能使用 {@link RelativeLayout.LayoutParams#addRule(int)} 方法，进行定位。需要手动计算所有的 margin left、right、top、bottom；
- *     可参考 {@link VideoViewLayout#initFloatLayoutParams()} 实现。
- */
 public class VideoView extends TXCloudVideoView {
     private static final String TAG = "TRTCCloudVideoView";
     private OnClickListener mClickListener;
