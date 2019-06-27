@@ -72,8 +72,6 @@ public class LoginActivity extends Activity {
         // 申请动态权限
         checkPermission();
         mUserInfoLoader = new GetUserIDAndUserSig(this);
-        //显示对话框
-        ProgressDialogUtil.showProgressDialog(this,"请稍等...");
         onJoinRoom();
     }
 
@@ -85,8 +83,6 @@ public class LoginActivity extends Activity {
         intent.putExtra(ThirdLoginConstant.SDKAPPID, sdkAppId);
 
         mUserInfoLoader.getUserSigFromServer(mUserId, (userSig, errMsg) -> {
-            ProgressDialogUtil.dismiss();
-
             if (!TextUtils.isEmpty(userSig)) {
                 intent.putExtra(ThirdLoginConstant.USERSIGN, userSig);
                 startActivity(intent);
