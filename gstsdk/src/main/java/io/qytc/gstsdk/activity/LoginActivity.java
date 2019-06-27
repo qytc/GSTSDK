@@ -2,26 +2,20 @@ package io.qytc.gstsdk.activity;
 
 import android.Manifest;
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.text.TextUtils;
-import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
-
-import com.tencent.trtc.TRTCCloud;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import io.qytc.gstsdk.GetUserIDAndUserSig;
-import io.qytc.gstsdk.R;
+import io.qytc.gstsdk.common.ProgressDialogUtil;
 import io.qytc.gstsdk.common.ThirdLoginConstant;
 
 /**
@@ -41,98 +35,70 @@ public class LoginActivity extends Activity {
     private GetUserIDAndUserSig mUserInfoLoader;
     private String mUserId = "";
     private String mUserSig = "";
-    private String mAnchor = "yc0";
-    private  int roomId = -1;
-    private EditText etRoomId;
-    private EditText etUserId;
+    private String mAnchor = "";
+    private Integer roomId = -1;
+    private Integer sdkAppId = -1;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.login_activity);
 
         Intent intent = getIntent();
-        mUserId = intent.getStringExtra("userId");
-//        mAnchor = intent.getStringExtra("anchor");
-
-        etRoomId = findViewById(R.id.et_room_name);
-        etUserId = findViewById(R.id.et_user_name);
-
-        if(!TextUtils.isEmpty(mUserId)){
-            etUserId.setText(mUserId);
+        mUserId = intent.getStringExtra(ThirdLoginConstant.USERID);
+        if (TextUtils.isEmpty(mUserId)) {
+            Toast.makeText(this, "请传入有效的用户名", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
         }
-        loadUserInfo(etRoomId, etUserId);
-
-        TextView tvEnterRoom = findViewById(R.id.tv_enter);
-        tvEnterRoom.setOnClickListener(v -> startJoinRoom());
-
-//        final ArrayList<String> userIds = mUserInfoLoader.getUserIdFromConfig();
-//        if (userIds != null && userIds.size() > 0) {
-//            UserSelectDialog dialog = new UserSelectDialog(getContext(), mUserInfoLoader.getUserIdFromConfig());
-//            dialog.setTitle("请选择登录的用户:");
-//            dialog.setCanceledOnTouchOutside(false);
-//            dialog.setOnItemClickListener(position -> {
-//                final EditText etUserId1 = findViewById(R.id.et_user_name);
-//                etUserId1.setText(userIds.get(position));
-//                etUserId1.setEnabled(false);
-//            });
-//            dialog.show();
-//        } else {
-//            showAlertDialog();
-//        }
+        mAnchor = intent.getStringExtra(ThirdLoginConstant.ANCHOR);
+        if (TextUtils.isEmpty(mAnchor)) {
+            Toast.makeText(this, "请传入有效的主会场", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+        roomId = intent.getIntExtra(ThirdLoginConstant.ROOMID, -1);
+        if (roomId == -1) {
+            Toast.makeText(this, "请传入有效的房间号", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+        sdkAppId = intent.getIntExtra(ThirdLoginConstant.SDKAPPID, -1);
+        if (sdkAppId == -1) {
+            Toast.makeText(this, "请传入有效的sdkAppId", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
 
         // 申请动态权限
         checkPermission();
+        mUserInfoLoader = new GetUserIDAndUserSig(this);
+        //显示对话框
+        ProgressDialogUtil.showProgressDialog(this,"请稍等...");
+        onJoinRoom();
     }
 
-    private void onJoinRoom(final int roomId, final String userId) {
-        mUserInfoLoader = new GetUserIDAndUserSig(this);
-        Integer sdkAppId = 1400222844;//mUserInfoLoader.getSdkAppIdFromXML();
+    private void onJoinRoom() {
         final Intent intent = new Intent(getContext(), RoomActivity.class);
         intent.putExtra(ThirdLoginConstant.ROOMID, roomId);
-        intent.putExtra(ThirdLoginConstant.USERID, userId);
+        intent.putExtra(ThirdLoginConstant.USERID, mUserId);
         intent.putExtra(ThirdLoginConstant.ANCHOR, mAnchor);
         intent.putExtra(ThirdLoginConstant.SDKAPPID, sdkAppId);
 
-        mUserInfoLoader.getUserSigFromServer(userId, (userSig, errMsg) -> {
+        mUserInfoLoader.getUserSigFromServer(mUserId, (userSig, errMsg) -> {
+            ProgressDialogUtil.dismiss();
+
             if (!TextUtils.isEmpty(userSig)) {
                 intent.putExtra(ThirdLoginConstant.USERSIGN, userSig);
-                saveUserInfo(String.valueOf(roomId),userId,userSig);
                 startActivity(intent);
-                finish();
             } else {
                 runOnUiThread(() -> Toast.makeText(getContext(), "获取签名失败", Toast.LENGTH_SHORT).show());
             }
-
+            finish();
         });
-    }
-
-    private void startJoinRoom() {
-        try {
-            roomId = Integer.valueOf(etRoomId.getText().toString());
-        } catch (Exception e) {
-            Toast.makeText(getContext(), "请输入有效的房间号", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        final String userId = etUserId.getText().toString();
-        if (TextUtils.isEmpty(userId)) {
-            Toast.makeText(getContext(), "请输入有效的用户名", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        onJoinRoom(roomId, userId);
     }
 
     private Context getContext() {
         return this;
-    }
-
-    private void showAlertDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("注意")
-                .setMessage("读取配置文件失败");
-        AlertDialog alertDialog = builder.create();
-        alertDialog.setCanceledOnTouchOutside(true);
-        alertDialog.show();
     }
 
     private boolean checkPermission() {
@@ -174,39 +140,6 @@ public class LoginActivity extends Activity {
                 break;
             default:
                 break;
-        }
-    }
-
-    private void saveUserInfo(String roomId, String userId, String userSig) {
-        try {
-            mUserId = userId;
-//            mUserSig = userSig;
-            SharedPreferences shareInfo = this.getSharedPreferences("per_data", 0);
-            SharedPreferences.Editor editor = shareInfo.edit();
-            editor.putString(ThirdLoginConstant.USERID, userId);
-            editor.putString(ThirdLoginConstant.ROOMID, roomId);
-//            editor.putString("userSig", userSig);
-            editor.apply();
-        } catch (Exception e) {
-
-        }
-    }
-
-    private void loadUserInfo(EditText etRoomId, EditText etUserId) {
-        try {
-            TRTCCloud.getSDKVersion();
-            SharedPreferences shareInfo = this.getSharedPreferences("per_data", 0);
-            mUserId = shareInfo.getString(ThirdLoginConstant.USERID, "");
-            String roomId = shareInfo.getString(ThirdLoginConstant.ROOMID, "");
-//            mUserSig = shareInfo.getString("userSig", "");
-            if (TextUtils.isEmpty(roomId)) {
-                etRoomId.setText("2999");
-            } else {
-                etRoomId.setText(roomId);
-            }
-            etUserId.setText(mUserId);
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 
