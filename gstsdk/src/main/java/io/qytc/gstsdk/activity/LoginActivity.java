@@ -69,7 +69,7 @@ public class LoginActivity extends Activity {
         intent.putExtra(ThirdLoginConstant.ANCHOR, mAnchor);
         intent.putExtra(ThirdLoginConstant.SDKAPPID, sdkAppId);
 
-        mUserInfoLoader.getUserSigFromServer(mUserId, (userSig, errMsg) -> {
+        mUserInfoLoader.getUserSigFromServer(mUserId, String.valueOf(sdkAppId), (userSig, errMsg) -> {
             if (!TextUtils.isEmpty(userSig)) {
                 intent.putExtra(ThirdLoginConstant.USERSIGN, userSig);
                 startActivity(intent);

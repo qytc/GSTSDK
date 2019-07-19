@@ -5,26 +5,40 @@ import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.text.TextUtils;
+import android.util.Log;
 
 import io.qytc.gstsdk.common.HttpHelper;
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 
 
 public class GetUserIDAndUserSig {
+    private static final String TAG        = GetUserIDAndUserSig.class.getSimpleName();
     private int mSdkAppId;
     private ArrayList<String> mUserIdArray;
     private ArrayList<String> mUserSigArray;
     private Activity activity;
     private HttpHelper httpHelper;
+    private final static String SERVER_URL = "http://ums1.whqunyu.com:8888/api/v1/generateUserSig";
 
+    private final static String JSON_ERRORCODE = "code";
+    private final static String JSON_ERRORINFO = "msg";
+    private final static String JSON_DATA = "data";
     public GetUserIDAndUserSig(Activity activity){
         mSdkAppId = 0;
         mUserIdArray = new ArrayList<>();
@@ -103,11 +117,63 @@ public class GetUserIDAndUserSig {
      *
      * 但本demo中的 getUserSigFromServer 函数仅作为示例代码，要跑通该逻辑，您需要参考：https://cloud.tencent.com/document/product/647/17275#GetFromServer
      */
-    public void getUserSigFromServer(String userId, IGetUserSigListener listener) {
-        if (httpHelper == null) {
-            httpHelper = new HttpHelper();
+    public void getUserSigFromServer(String userId,String appId,IGetUserSigListener listener) {
+
+        OkHttpClient httpClient=new OkHttpClient();
+        try {
+            JSONObject jsonReq = new JSONObject();
+            jsonReq.put("userId", userId);
+            jsonReq.put("appId",appId);
+            RequestBody body = RequestBody.create(MediaType.parse("application/json"), jsonReq.toString());
+            Request req = new Request.Builder()
+                    .url(SERVER_URL)
+                    .post(body)
+                    .build();
+            httpClient.newCall(req).enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    Log.w(TAG, "loadUserSig->fail: "+e.toString());
+                    if (listener != null) {
+                        listener.onComplete(null, "http request failed");
+                    }
+                }
+
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    if (!response.isSuccessful()){
+                        Log.w(TAG, "loadUserSig->fail: "+response.message());
+                        if (listener != null) {
+                            listener.onComplete(null, response.message());
+                        }
+                    }else{
+                        try {
+                            JSONTokener jsonTokener = new JSONTokener(response.body().string());
+                            JSONObject msgJson = (JSONObject) jsonTokener.nextValue();
+                            int code = msgJson.getInt(JSON_ERRORCODE);
+                            if (0 != code){
+                                if (listener != null) {
+                                    listener.onComplete(null, msgJson.getString(JSON_ERRORINFO));
+                                }
+                            }else{
+                                String userSig = msgJson.getString(JSON_DATA);
+                                if (listener != null) {
+                                    listener.onComplete(userSig, msgJson.getString(JSON_ERRORINFO));
+                                }
+                            }
+                        }catch (Exception e){
+                            Log.i(TAG, "loadUserSig->exception: "+e.toString());
+                            if (listener != null) {
+                                listener.onComplete(null, e.toString());
+                            }
+                        }
+                    }
+                }
+            });
+        } catch (Exception e){
+            if (listener != null) {
+                listener.onComplete(null, e.toString());
+            }
         }
-        httpHelper.post(userId, listener);
     }
 
 

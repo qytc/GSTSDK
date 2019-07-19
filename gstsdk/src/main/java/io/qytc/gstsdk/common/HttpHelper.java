@@ -42,7 +42,7 @@ public class HttpHelper {
     private final static String JSON_PRIVMAP = "privMap";
     private final static String JSON_ACCTYPE = "accounttype";
 
-    private final static String SERVER_URL = "http://122.112.229.143:8888/api/v1/account/getUserSig";
+    private final static String SERVER_URL = "http://ums1.whqunyu.com:8888/api/v1/UserSig/generateUserSig";
 
     private static final String TAG = HttpHelper.class.getSimpleName();
 
@@ -67,6 +67,7 @@ public class HttpHelper {
         try {
             JSONObject jsonReq = new JSONObject();
             jsonReq.put("userId", userId);
+            jsonReq.put("appId","1400210901");
             RequestBody body = RequestBody.create(MediaType.parse("application/json"), jsonReq.toString());
             Request req = new Request.Builder()
                     .url(SERVER_URL)

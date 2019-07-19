@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/remote_layout"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginLeft="4dp"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:id="@+id/remote_video_layout"
+        android:layout_width="86dp"
+        android:layout_height="153dp"
+        android:background="@color/background"
+        android:orientation="horizontal"
+        android:padding="1dp">
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/remote_name_tv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginTop="10dp"
+        android:background="#223F51B5"
+        android:text="TextView"
+        android:visibility="gone" />
+</FrameLayout>
